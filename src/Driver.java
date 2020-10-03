@@ -1,11 +1,14 @@
-import controller.ControllerBuilder;
 import model.GameEngineImpl;
+import model.interfaces.GameEngine;
 import view.GameEngineCallbackGUI;
 
 public class Driver {
 
 	public static void main(String[] args) {
-		new GameEngineCallbackGUI(new ControllerBuilder(new GameEngineImpl())).show();
+		GameEngine engine = new GameEngineImpl();
+		GameEngineCallbackGUI uiCallback = new GameEngineCallbackGUI(new GameEngineImpl());
+		engine.addGameEngineCallback(uiCallback);
+		uiCallback.run();
 	}
 
 }

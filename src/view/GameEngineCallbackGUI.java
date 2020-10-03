@@ -1,14 +1,16 @@
 package view;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
-import controller.ControllerBuilder;
+import controller.AddPlayerController;
+import controller.BetController;
+import controller.ChangePlayerController;
+import controller.DealPlayerController;
+import controller.RemovePlayerController;
 import model.interfaces.GameEngine;
 import model.interfaces.Player;
 import model.interfaces.PlayingCard;
@@ -16,98 +18,145 @@ import view.interfaces.GameEngineCallback;
 
 public class GameEngineCallbackGUI implements GameEngineCallback {
 
-	private ControllerBuilder controllerBuilder;
-	
-	private JFrame mainFrame;
+	private MainFrame mainFrame;
 	private JPanel contentPane;
 	private HeaderPanel headerPanel;
-	
-	public GameEngineCallbackGUI(ControllerBuilder controllerBuilder) {
-		this.controllerBuilder = controllerBuilder;
+	private SummaryPanel summaryPanel;
+	private ViewContext viewContext;
+	private GameEngine gameEngine;
+	private MenuBar menuBar;
+
+	public GameEngineCallbackGUI(GameEngine gameEngine) {
+		this.gameEngine = gameEngine;
+		this.viewContext = new ViewContext();
 	}
-	
-	
+
 	public void nextCard(Player player, PlayingCard card, GameEngine engine) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	
 	public void bustCard(Player player, PlayingCard card, GameEngine engine) {
-		// TODO Auto-generated method stub
-		
+		dealFinished();
 	}
 
-	
 	public void result(Player player, int result, GameEngine engine) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	
 	public void nextHouseCard(PlayingCard card, GameEngine engine) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	
 	public void houseBustCard(PlayingCard card, GameEngine engine) {
-		// TODO Auto-generated method stub
-		
+		dealFinished();
 	}
 
-	
 	public void houseResult(int result, GameEngine engine) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	public void playerAdded(Player player) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				headerPanel.playerAdded(player);
+				summaryPanel.playerAdded(player);
+			}
+		});
+	}
+
+	public void playerChanged(Player player) {
+		viewContext.setCurrentPlayer(player);
 	}
 	
-	public void show() {
+	public void houseSelected() {
+		viewContext.setCurrentPlayer(null);
+		headerPanel.updateActionsOnChanged();
+	}
+
+	public void playerRemoved(Player player) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				headerPanel.playerRemoved(player);
+				summaryPanel.playerRemoved(player);
+			}
+		});
+	}
+
+	public void betReceive(Player player) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				headerPanel.updateActionsOnChanged();
+				summaryPanel.refreshInfo(player);
+			}
+		});
+	}
+	
+	public void dealStarted(Player player) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				headerPanel.dealStarted();
+				menuBar.dealStarted();
+			}
+		});
+	}
+
+	public void run() {
 		initializeView();
 	}
-	
+
 	private void initializeView() {
-		mainFrame = new JFrame("Game engine");
-		mainFrame.setLayout(new BorderLayout());
+		mainFrame = new MainFrame();
 		initializeContentPane();
 		initializeMenu();
 		initializeHeaderPanel();
-		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		mainFrame.setContentPane(contentPane);
-		mainFrame.setMinimumSize(new Dimension(500, 500));
-		mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-		mainFrame.pack();
-		mainFrame.setVisible(true);
-	}
-	
-	private void initializeMenu() {
-		mainFrame.setJMenuBar(new GameMenuBar(controllerBuilder.createAddPlayerController(this)));
-	}
-	
-	private void initializeHeaderPanel() {
-		headerPanel = new HeaderPanel();
-		contentPane.add(headerPanel, BorderLayout.NORTH);
+		initializeSummaryPanel();
+		mainFrame.start();
 	}
 	
 	private void initializeContentPane() {
 		contentPane = new JPanel(new BorderLayout());
+		mainFrame.setContentPane(contentPane);
+	}
+
+	private void initializeMenu() {
+		menuBar = new MenuBar(new AddPlayerController(gameEngine, this));
+		mainFrame.setJMenuBar(menuBar);
+	}
+
+	private void initializeHeaderPanel() {
+		headerPanel = new HeaderPanel(new RemovePlayerController(gameEngine, this), new ChangePlayerController(this),
+				new DealPlayerController(gameEngine, this), new BetController(this));
+		contentPane.add(headerPanel, BorderLayout.NORTH);
 	}
 	
-	public AddPlayerPanel promptPlayerData() {
-		AddPlayerPanel panel = new AddPlayerPanel();
-		int option = JOptionPane.showConfirmDialog(mainFrame, panel, "Please enter player info", JOptionPane.OK_CANCEL_OPTION);
-		if (option == JOptionPane.YES_OPTION) {
-			return panel;
-		} else {
-			return null;
-		}
+	private void initializeSummaryPanel() {
+		summaryPanel = new SummaryPanel();
+		contentPane.add(summaryPanel, BorderLayout.WEST);
 	}
 	
-	public void showError(String message) {
+	private void dealFinished() {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				headerPanel.dealFinished();
+				menuBar.dealFinished();
+			}
+		});
+	}
+
+	public void showMessage(String message) {
 		JOptionPane.showMessageDialog(mainFrame, message);
 	}
-	
-	public void playerAdded(Player player) {
-		headerPanel.playerAdded(player);
+
+	public ViewContext getViewContext() {
+		return this.viewContext;
 	}
 }

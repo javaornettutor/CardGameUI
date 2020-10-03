@@ -13,36 +13,41 @@ public class AddPlayerController implements ActionListener {
 
 	private GameEngineCallbackGUI gameEngineCallbackGUI;
 	private GameEngine gameEngine;
-	
+
 	public AddPlayerController(GameEngine gameEngine, GameEngineCallbackGUI gameEngineCallbackGUI) {
 		this.gameEngine = gameEngine;
 		this.gameEngineCallbackGUI = gameEngineCallbackGUI;
 	}
 
 	public void actionPerformed(ActionEvent event) {
-		AddPlayerPanel playerPanel = gameEngineCallbackGUI.promptPlayerData();
-		if (playerPanel == null) return;
-		String inputName = playerPanel.getInputName();
-		String inputPoint = playerPanel.getInputPoint();
-		
-		if(validatePlayerData(inputName, inputPoint)) {
-			int point = Integer.parseInt(inputPoint);
-			Player player = new SimplePlayer(inputName.replaceAll("\\s", "_").toUpperCase(), inputName, point);
-			gameEngine.addPlayer(player);
-			gameEngineCallbackGUI.playerAdded(player);
+		AddPlayerRequest request = (AddPlayerRequest) event.getSource();
+
+		if (validatePlayerData(request)) {
+			int point = Integer.parseInt(request.getPoint());
+			Player player = new SimplePlayer(request.getName().replaceAll("\\s", "_").toUpperCase(), request.getName(),
+					point);
+			new Thread() {
+				@Override
+				public void run() {
+					gameEngine.addPlayer(player);
+					gameEngineCallbackGUI.playerAdded(player);
+				}
+			}.start();
 		} else {
-			gameEngineCallbackGUI.showError("Invalid player data");
+			gameEngineCallbackGUI.showMessage("Invalid player data");
 		}
 	}
-	
-	private boolean validatePlayerData(String inputName, String inputPoint) {
-		if(inputName.isEmpty()) return false;
-		try { 
-	        int point = Integer.parseInt(inputPoint);
-	        if (point <= 0) return false;
-	    } catch(NumberFormatException e) { 
-	        return false;
-	    }
+
+	private boolean validatePlayerData(AddPlayerRequest request) {
+		if (request.getName().isEmpty())
+			return false;
+		try {
+			int point = Integer.parseInt(request.getPoint());
+			if (point <= 0)
+				return false;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 		return true;
 	}
 }

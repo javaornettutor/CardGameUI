@@ -6,6 +6,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import controller.AddPlayerRequest;
+
 public class AddPlayerPanel extends JPanel {
 	
 	private JTextField name;
@@ -26,11 +28,10 @@ public class AddPlayerPanel extends JPanel {
 		this.add(point);
 	}
 	
-	public String getInputName() {
-		return name.getText();
-	}
-	
-	public String getInputPoint() {
-		return point.getText();
+	public AddPlayerRequest getAddPlayerRequest() {
+		AddPlayerRequest request = new AddPlayerRequest();
+		request.setName(name.getText());
+		request.setPoint(point.getText());
+		return request;
 	}
 }
