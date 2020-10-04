@@ -11,19 +11,19 @@ import view.GameEngineCallbackGUI;
 public class ChangePlayerController implements ActionListener {
 
 	private GameEngineCallbackGUI gameEngineCallbackGUI;
-	
+
 	public ChangePlayerController(GameEngineCallbackGUI gameEngineCallbackGUI) {
 		this.gameEngineCallbackGUI = gameEngineCallbackGUI;
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		JComboBox playerCombo = (JComboBox)event.getSource();
+		JComboBox playerCombo = (JComboBox) event.getSource();
 		Object selected = playerCombo.getSelectedItem();
 		if (selected instanceof Player) {
-			gameEngineCallbackGUI.playerChanged((Player)selected);
+			gameEngineCallbackGUI.playerChanged((Player) selected);
 		} else {
-			
+			gameEngineCallbackGUI.houseSelected();
 		}
 	}
 }

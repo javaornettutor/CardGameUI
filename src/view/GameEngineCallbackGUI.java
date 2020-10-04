@@ -25,6 +25,7 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 	private ViewContext viewContext;
 	private GameEngine gameEngine;
 	private MenuBar menuBar;
+	private DealResultPanel dealResultPanel;
 
 	public GameEngineCallbackGUI(GameEngine gameEngine) {
 		this.gameEngine = gameEngine;
@@ -32,8 +33,12 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 	}
 
 	public void nextCard(Player player, PlayingCard card, GameEngine engine) {
-		// TODO Auto-generated method stub
-
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				dealResultPanel.nextPlayerCardReceived(player, card);
+			}
+		});
 	}
 
 	public void bustCard(Player player, PlayingCard card, GameEngine engine) {
@@ -71,11 +76,23 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 
 	public void playerChanged(Player player) {
 		viewContext.setCurrentPlayer(player);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				dealResultPanel.switchTo(player);
+			}
+		});
 	}
-	
+
 	public void houseSelected() {
 		viewContext.setCurrentPlayer(null);
-		headerPanel.updateActionsOnChanged();
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				headerPanel.updateActionsOnChanged();
+				dealResultPanel.switchTo(viewContext.getHousePlayer());
+			}
+		});
 	}
 
 	public void playerRemoved(Player player) {
@@ -97,13 +114,23 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 			}
 		});
 	}
-	
+
 	public void dealStarted(Player player) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				headerPanel.dealStarted();
 				menuBar.dealStarted();
+				dealResultPanel.dealStarted(player);
+			}
+		});
+	}
+	
+	public void dealStartedHouse() {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				dealResultPanel.dealStarted(viewContext.getHousePlayer());
 			}
 		});
 	}
@@ -118,9 +145,10 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 		initializeMenu();
 		initializeHeaderPanel();
 		initializeSummaryPanel();
+		initializeDealResultPanel();
 		mainFrame.start();
 	}
-	
+
 	private void initializeContentPane() {
 		contentPane = new JPanel(new BorderLayout());
 		mainFrame.setContentPane(contentPane);
@@ -133,15 +161,20 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 
 	private void initializeHeaderPanel() {
 		headerPanel = new HeaderPanel(new RemovePlayerController(gameEngine, this), new ChangePlayerController(this),
-				new DealPlayerController(gameEngine, this), new BetController(this));
+				new DealPlayerController(gameEngine, this), new BetController(this), viewContext);
 		contentPane.add(headerPanel, BorderLayout.NORTH);
 	}
-	
+
 	private void initializeSummaryPanel() {
 		summaryPanel = new SummaryPanel();
 		contentPane.add(summaryPanel, BorderLayout.WEST);
 	}
-	
+
+	private void initializeDealResultPanel() {
+		dealResultPanel = new DealResultPanel();
+		contentPane.add(dealResultPanel, BorderLayout.CENTER);
+	}
+
 	private void dealFinished() {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override

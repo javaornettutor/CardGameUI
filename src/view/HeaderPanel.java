@@ -16,7 +16,6 @@ import javax.swing.JToolBar;
 import controller.BetController;
 import controller.ChangePlayerController;
 import controller.DealPlayerController;
-import controller.HousePlayer;
 import controller.RemovePlayerController;
 import model.interfaces.Player;
 
@@ -31,15 +30,17 @@ public class HeaderPanel extends JPanel {
 	private ChangePlayerController changePlayerController;
 	private DealPlayerController dealPlayerController;
 	private BetController betController;
+	private ViewContext viewContext;
 	private boolean dealing;
 
 	public HeaderPanel(RemovePlayerController removePlayerController, ChangePlayerController changePlayerController,
-			DealPlayerController dealPlayerController, BetController betController) {
+			DealPlayerController dealPlayerController, BetController betController, ViewContext viewContext) {
 		super();
 		this.removePlayerController = removePlayerController;
 		this.changePlayerController = changePlayerController;
 		this.dealPlayerController = dealPlayerController;
 		this.betController = betController;
+		this.viewContext = viewContext;
 		initializeComponents();
 		this.setVisible(true);
 	}
@@ -60,7 +61,7 @@ public class HeaderPanel extends JPanel {
 	private void initializePlayerCombo() {
 		playerCombo = new JComboBox<Object>();
 		playerCombo.setPreferredSize(new Dimension(200, 20));
-		playerCombo.addItem(new HousePlayer());
+		playerCombo.addItem(viewContext.getHousePlayer());
 		playerCombo.setRenderer(new DefaultListCellRenderer() {
 
 			public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
