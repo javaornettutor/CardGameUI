@@ -37,6 +37,7 @@ public class SummaryPanel extends JPanel {
 	public void playerRemoved(Player player) {
 		remove(componentMap.remove(player.getPlayerId()));
 		previousBalanceMap.remove(player.getPlayerId());
+		repaint();
 	}
 
 	public void refreshInfo(Player player, boolean updateWinLoss) {

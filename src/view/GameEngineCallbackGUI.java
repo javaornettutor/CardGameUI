@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -98,13 +99,19 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 
 	public void houseResult(int result, GameEngine engine) {
 		viewContext.startNewRound();
+		ArrayList<Player> playersToRemove = new ArrayList<>();
+		for(Player player : gameEngine.getAllPlayers()) {
+			if (player.getPoints() != 0) summaryPanel.refreshInfo(player, true);
+			else playersToRemove.add(player);
+		}
+		for (Player player : playersToRemove) {
+			gameEngine.removePlayer(player);
+			this.playerRemoved(player);
+		}
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				headerPanel.updateActionsOnChanged();
-				for(Player player : gameEngine.getAllPlayers()) {
-					summaryPanel.refreshInfo(player, true);
-				}
 			}
 		});
 	}
