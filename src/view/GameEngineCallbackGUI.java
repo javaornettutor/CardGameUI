@@ -1,6 +1,8 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -9,6 +11,7 @@ import javax.swing.SwingUtilities;
 import controller.AddPlayerController;
 import controller.BetController;
 import controller.ChangePlayerController;
+import controller.DealHouseController;
 import controller.DealPlayerController;
 import controller.RemovePlayerController;
 import model.interfaces.GameEngine;
@@ -33,35 +36,69 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 	}
 
 	public void nextCard(Player player, PlayingCard card, GameEngine engine) {
+		addViewContextCard(player, card);
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				dealResultPanel.nextPlayerCardReceived(player, card);
+				dealResultPanel.nextCardReceived(player);
 			}
 		});
 	}
 
 	public void bustCard(Player player, PlayingCard card, GameEngine engine) {
 		dealFinished();
+		addViewContextCard(player, card);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				dealResultPanel.nextCardReceived(player);
+			}
+		});
 	}
 
 	public void result(Player player, int result, GameEngine engine) {
-		// TODO Auto-generated method stub
-
+		viewContext.finishDealPlayer(player);
+		if (viewContext.allPlayerDealt(gameEngine.getAllPlayers())) {
+			showMessage("All players have dealt, now start dealing house");
+			new DealHouseController(gameEngine, this).actionPerformed(new ActionEvent(this, 1, "dealHouse"));
+		}
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				summaryPanel.refreshInfo(player);
+			}
+		});
 	}
 
 	public void nextHouseCard(PlayingCard card, GameEngine engine) {
-		// TODO Auto-generated method stub
-
+		addViewContextCard(viewContext.getHousePlayer(), card);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				dealResultPanel.nextCardReceived(viewContext.getHousePlayer());
+			}
+		});
 	}
 
 	public void houseBustCard(PlayingCard card, GameEngine engine) {
 		dealFinished();
+		addViewContextCard(viewContext.getHousePlayer(), card);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				dealResultPanel.nextCardReceived(viewContext.getHousePlayer());
+			}
+		});
 	}
 
 	public void houseResult(int result, GameEngine engine) {
-		// TODO Auto-generated method stub
-
+		viewContext.startNewRound();
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				headerPanel.updateActionsOnChanged();
+			}
+		});
 	}
 
 	public void playerAdded(Player player) {
@@ -116,6 +153,9 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 	}
 
 	public void dealStarted(Player player) {
+		if (viewContext.getCardsMap().containsKey(player)) {
+			viewContext.getCardsMap().get(player).clear();
+		}
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -125,14 +165,24 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 			}
 		});
 	}
-	
+
 	public void dealStartedHouse() {
+		if (viewContext.getCardsMap().containsKey(viewContext.getHousePlayer())) {
+			viewContext.getCardsMap().get(viewContext.getHousePlayer()).clear();
+		}
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				dealResultPanel.dealStarted(viewContext.getHousePlayer());
 			}
 		});
+	}
+
+	private void addViewContextCard(Object owner, PlayingCard card) {
+		if (!viewContext.getCardsMap().containsKey(owner)) {
+			viewContext.getCardsMap().put(owner, new ArrayList<PlayingCard>());
+		}
+		viewContext.getCardsMap().get(owner).add(card);
 	}
 
 	public void run() {
@@ -171,7 +221,7 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 	}
 
 	private void initializeDealResultPanel() {
-		dealResultPanel = new DealResultPanel();
+		dealResultPanel = new DealResultPanel(viewContext);
 		contentPane.add(dealResultPanel, BorderLayout.CENTER);
 	}
 

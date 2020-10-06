@@ -23,7 +23,7 @@ public class SummaryPanel extends JPanel {
 	
 	private void initialize() {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(Color.WHITE);
+		setBackground(Color.YELLOW);
 	}
 	
 	public void playerAdded(Player player) {

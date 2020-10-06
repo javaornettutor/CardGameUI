@@ -119,7 +119,7 @@ public class HeaderPanel extends JPanel {
 				: null;
 		removeBtn.setEnabled(player != null || dealing);
 		dealBtn.setEnabled(dealing || (player != null && player.getBet() > 0));
-		betBtn.setEnabled(dealing || player != null);
+		betBtn.setEnabled(dealing || (player != null && player.getBet() == 0));
 	}
 
 	public void playerAdded(Player player) {
