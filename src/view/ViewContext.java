@@ -57,8 +57,8 @@ public class ViewContext {
 	
 	public List<PlayingCard> getCards(Object owner) {
 		if (cardsMap.containsKey(owner)) {
-			return Collections.synchronizedList(cardsMap.get(owner));
+			return (List<PlayingCard>) cardsMap.get(owner).clone();
 		}
-		return Collections.synchronizedList(new ArrayList<>());
+		return new ArrayList<>();
 	}
 }

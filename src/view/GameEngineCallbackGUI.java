@@ -1,11 +1,15 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import controller.AddPlayerController;
@@ -21,6 +25,7 @@ import view.interfaces.GameEngineCallback;
 
 public class GameEngineCallbackGUI implements GameEngineCallback {
 
+	private static double SUMMARY_PANEL_SIZE_RATIO = 0.2;
 	private MainFrame mainFrame;
 	private JPanel contentPane;
 	private HeaderPanel headerPanel;
@@ -65,7 +70,7 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				summaryPanel.refreshInfo(player);
+				summaryPanel.refreshInfo(player, false);
 			}
 		});
 	}
@@ -97,6 +102,9 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 			@Override
 			public void run() {
 				headerPanel.updateActionsOnChanged();
+				for(Player player : gameEngine.getAllPlayers()) {
+					summaryPanel.refreshInfo(player, true);
+				}
 			}
 		});
 	}
@@ -147,7 +155,7 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 			@Override
 			public void run() {
 				headerPanel.updateActionsOnChanged();
-				summaryPanel.refreshInfo(player);
+				summaryPanel.refreshInfo(player, false);
 			}
 		});
 	}
@@ -191,6 +199,12 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 
 	private void initializeView() {
 		mainFrame = new MainFrame();
+		mainFrame.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent e) {
+	            Dimension frameSize = e.getComponent().getSize();
+	            summaryPanel.setPreferredSize(new Dimension(frameSize.width, (int) (frameSize.height * SUMMARY_PANEL_SIZE_RATIO)));
+	        }
+		});
 		initializeContentPane();
 		initializeMenu();
 		initializeHeaderPanel();
@@ -217,7 +231,8 @@ public class GameEngineCallbackGUI implements GameEngineCallback {
 
 	private void initializeSummaryPanel() {
 		summaryPanel = new SummaryPanel();
-		contentPane.add(summaryPanel, BorderLayout.WEST);
+		JScrollPane scroll = new JScrollPane(summaryPanel);
+		contentPane.add(scroll, BorderLayout.SOUTH);
 	}
 
 	private void initializeDealResultPanel() {
